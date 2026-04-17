@@ -23,6 +23,19 @@ The resulting executable will be at:
 target\release\wsl2-ssh-agent.exe
 ```
 
+## Release
+
+GitHub Actions builds release artifacts for version tags that match `v*`.
+
+Example:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+This creates a GitHub Release and uploads a Windows zip archive containing `wsl2-ssh-agent.exe`.
+
 ## WSL Setup
 
 Install `socat` in your WSL distro if needed:
