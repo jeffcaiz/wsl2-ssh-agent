@@ -12,13 +12,12 @@
 
 - Rust binary crate initialized as `wsl2-ssh-agent`.
 - CLI behavior updated:
-  - no arguments: print setup/help text and exit
+  - no arguments: run auto mode
   - `--auto`
   - `--openssh`
   - `--pipe <name>`
   - `--pageant`
-  - forwarding mode requires an explicit backend selection
-  - `--auto` means OpenSSH pipe first, then Pageant fallback
+  - default auto mode: OpenSSH pipe first, then Pageant fallback
 - Common SSH agent framing is implemented in `src/agent.rs`.
 - Windows backend skeletons exist:
   - `src/backends/openssh_pipe.rs`

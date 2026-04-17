@@ -50,7 +50,7 @@ Create a Unix socket that forwards to the Windows binary:
 ```bash
 export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
 rm -f "$SSH_AUTH_SOCK"
-socat UNIX-LISTEN:"$SSH_AUTH_SOCK",fork EXEC:'/path/to/wsl2-ssh-agent.exe --auto'
+socat UNIX-LISTEN:"$SSH_AUTH_SOCK",fork EXEC:'/path/to/wsl2-ssh-agent.exe'
 ```
 
 Then point SSH clients at that socket:
@@ -62,6 +62,36 @@ ssh-add -l
 
 Replace `/path/to/wsl2-ssh-agent.exe` with the WSL-visible path to your Windows build output.
 
+## systemd User Socket
+
+If your WSL distro has `systemd` enabled, a user socket is more convenient than running `socat` manually.
+
+First, create a stable WSL path for the Windows executable:
+
+```bash
+mkdir -p "$HOME/.local/bin"
+ln -sf /path/to/wsl2-ssh-agent.exe "$HOME/.local/bin/wsl2-ssh-agent.exe"
+```
+
+Then install the sample user units from [`contrib/systemd`](contrib/systemd):
+
+```bash
+mkdir -p "$HOME/.config/systemd/user"
+cp contrib/systemd/wsl2-ssh-agent.socket "$HOME/.config/systemd/user/"
+cp contrib/systemd/wsl2-ssh-agent.service "$HOME/.config/systemd/user/"
+systemctl --user daemon-reload
+systemctl --user enable --now wsl2-ssh-agent.socket
+```
+
+Expose the socket to SSH clients:
+
+```bash
+export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR:-/run/user/$UID}/ssh-agent.sock"
+ssh-add -l
+```
+
+The sample service uses the default auto mode. If you want to force Pageant, edit `wsl2-ssh-agent.service` and add `--pageant`.
+
 ## Backend Selection
 
 ```text
@@ -72,7 +102,7 @@ wsl2-ssh-agent.exe --pipe \\.\pipe\openssh-ssh-agent
 wsl2-ssh-agent.exe --pageant
 ```
 
-Run without arguments to print setup help. Use one of `--auto`, `--openssh`, `--pipe`, or `--pageant` to enter forwarding mode. Add `--verbose` to print backend selection diagnostics to stderr.
+Run without arguments to use the default auto mode. Use `--openssh`, `--pipe`, or `--pageant` to force a specific backend. Add `--verbose` to print backend selection diagnostics to stderr.
 
 ## Notes
 
