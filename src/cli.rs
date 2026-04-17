@@ -23,28 +23,24 @@ pub enum Command {
 impl Config {
     pub fn parse() -> io::Result<Command> {
         let mut verbose = false;
-        let mut selection = BackendSelection::Auto;
-        let mut forward = false;
-        let mut saw_args = false;
+        let mut selection = None;
 
         let mut args = env::args().skip(1);
         while let Some(arg) = args.next() {
-            saw_args = true;
             match arg.as_str() {
-                "--forward" | "-f" => forward = true,
-                "--auto" => selection = BackendSelection::Auto,
+                "--auto" => selection = Some(BackendSelection::Auto),
                 "--verbose" | "-v" => verbose = true,
-                "--pageant" => selection = BackendSelection::Pageant,
+                "--pageant" => selection = Some(BackendSelection::Pageant),
                 "--pipe" => {
                     let pipe = args.next().ok_or_else(|| {
                         io::Error::new(io::ErrorKind::InvalidInput, "--pipe requires a value")
                     })?;
-                    selection = BackendSelection::OpenSsh { pipe };
+                    selection = Some(BackendSelection::OpenSsh { pipe });
                 }
                 "--openssh" => {
-                    selection = BackendSelection::OpenSsh {
+                    selection = Some(BackendSelection::OpenSsh {
                         pipe: crate::DEFAULT_OPENSSH_PIPE.to_string(),
-                    };
+                    });
                 }
                 "--help" | "-h" => {
                     return Ok(Command::ShowHelp);
@@ -58,9 +54,9 @@ impl Config {
             }
         }
 
-        if !saw_args || !forward {
+        let Some(selection) = selection else {
             return Ok(Command::ShowHelp);
-        }
+        };
 
         Ok(Command::Run(Self { verbose, selection }))
     }
@@ -71,10 +67,10 @@ pub fn print_usage() {
         "\
 Usage:
   wsl2-ssh-agent
-  wsl2-ssh-agent -f [--verbose] [--auto | --openssh | --pipe <name> | --pageant]
+  wsl2-ssh-agent [--verbose] [--auto | --openssh | --pipe <name> | --pageant]
 
 Run without arguments to show this setup help.
-Use -f / --forward to enter agent forwarding mode.
+Choose exactly one backend mode to enter agent forwarding mode.
 
 Forwarding mode defaults to:
   1. Try Windows OpenSSH named pipe.
@@ -84,11 +80,10 @@ WSL example:
   export SSH_AUTH_SOCK=\"$HOME/.ssh/agent/s.wsl2-ssh-agent\"
   mkdir -p \"$(dirname \"$SSH_AUTH_SOCK\")\"
   rm -f \"$SSH_AUTH_SOCK\"
-  socat UNIX-LISTEN:\"$SSH_AUTH_SOCK\",fork EXEC:'/path/to/wsl2-ssh-agent.exe -f --pageant'
+  socat UNIX-LISTEN:\"$SSH_AUTH_SOCK\",fork EXEC:'/path/to/wsl2-ssh-agent.exe --pageant'
   ssh-add -l
 
 Options:
-  -f, --forward   Enter forwarding mode.
   --auto          Try Windows OpenSSH first, then fall back to Pageant.
   --openssh       Force the default Windows OpenSSH pipe.
   --pipe <name>   Force a specific Windows named pipe.

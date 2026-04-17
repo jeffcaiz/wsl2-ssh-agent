@@ -50,7 +50,7 @@ Create a Unix socket that forwards to the Windows binary:
 ```bash
 export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
 rm -f "$SSH_AUTH_SOCK"
-socat UNIX-LISTEN:"$SSH_AUTH_SOCK",fork EXEC:'/path/to/wsl2-ssh-agent.exe -f'
+socat UNIX-LISTEN:"$SSH_AUTH_SOCK",fork EXEC:'/path/to/wsl2-ssh-agent.exe --auto'
 ```
 
 Then point SSH clients at that socket:
@@ -66,14 +66,13 @@ Replace `/path/to/wsl2-ssh-agent.exe` with the WSL-visible path to your Windows 
 
 ```text
 wsl2-ssh-agent.exe
-wsl2-ssh-agent.exe -f
-wsl2-ssh-agent.exe -f --auto
-wsl2-ssh-agent.exe -f --openssh
-wsl2-ssh-agent.exe -f --pipe \\.\pipe\openssh-ssh-agent
-wsl2-ssh-agent.exe -f --pageant
+wsl2-ssh-agent.exe --auto
+wsl2-ssh-agent.exe --openssh
+wsl2-ssh-agent.exe --pipe \\.\pipe\openssh-ssh-agent
+wsl2-ssh-agent.exe --pageant
 ```
 
-Run without arguments to print setup help. Use `-f` to enter forwarding mode. `-f --auto` explicitly selects the default backend order. Add `--verbose` to print backend selection diagnostics to stderr.
+Run without arguments to print setup help. Use one of `--auto`, `--openssh`, `--pipe`, or `--pageant` to enter forwarding mode. Add `--verbose` to print backend selection diagnostics to stderr.
 
 ## Notes
 
