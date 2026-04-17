@@ -1,0 +1,10 @@
+[Unit]
+Description=WSL2 SSH agent socket
+
+[Socket]
+ListenStream=%t/ssh-agent.sock
+SocketMode=0600
+RemoveOnStop=true
+
+[Install]
+WantedBy=sockets.target

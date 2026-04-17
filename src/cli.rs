@@ -24,6 +24,7 @@ impl Config {
     pub fn parse() -> io::Result<Command> {
         let mut verbose = false;
         let mut selection = BackendSelection::Auto;
+        let mut custom_pipe = None;
 
         let mut args = env::args().skip(1);
         while let Some(arg) = args.next() {
@@ -35,7 +36,7 @@ impl Config {
                     let pipe = args.next().ok_or_else(|| {
                         io::Error::new(io::ErrorKind::InvalidInput, "--pipe requires a value")
                     })?;
-                    selection = BackendSelection::OpenSsh { pipe };
+                    custom_pipe = Some(pipe);
                 }
                 "--openssh" => {
                     selection = BackendSelection::OpenSsh {
@@ -54,6 +55,17 @@ impl Config {
             }
         }
 
+        if custom_pipe.is_some() && !matches!(selection, BackendSelection::OpenSsh { .. }) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "--pipe can only be used with --openssh",
+            ));
+        }
+
+        if let (BackendSelection::OpenSsh { pipe }, Some(custom_pipe)) = (&mut selection, custom_pipe) {
+            *pipe = custom_pipe;
+        }
+
         Ok(Command::Run(Self { verbose, selection }))
     }
 }
@@ -62,7 +74,9 @@ pub fn print_usage() {
     eprintln!(
         "\
 Usage:
-  wsl2-ssh-agent [--verbose] [--auto | --openssh | --pipe <name> | --pageant]
+  wsl2-ssh-agent [--verbose]
+  wsl2-ssh-agent [--verbose] --pageant
+  wsl2-ssh-agent [--verbose] --openssh [--pipe <name>]
 
 Runs in auto mode by default:
   1. Try Windows OpenSSH named pipe.
@@ -70,8 +84,8 @@ Runs in auto mode by default:
 
 Options:
   --auto          Try Windows OpenSSH first, then fall back to Pageant.
-  --openssh       Force the default Windows OpenSSH pipe.
-  --pipe <name>   Force a specific Windows named pipe.
+  --openssh       Force the OpenSSH backend.
+  --pipe <name>   Override the OpenSSH named pipe. Only valid with --openssh.
   --pageant       Force Pageant WM_COPYDATA transport.
   --verbose, -v   Print diagnostics to stderr.
   --help, -h      Show this help text."
