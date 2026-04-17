@@ -34,7 +34,7 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-This creates a GitHub Release and uploads a Windows zip archive containing `wsl2-ssh-agent.exe`.
+This creates a GitHub Release and uploads `wsl2-ssh-agent.exe` directly as the release asset.
 
 ## WSL Setup
 

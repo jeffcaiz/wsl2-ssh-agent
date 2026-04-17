@@ -21,19 +21,8 @@ jobs:
       - name: Build release binary
         run: cargo build --release
 
-      - name: Package release archive
-        shell: pwsh
-        run: |
-          $version = "${{ github.ref_name }}"
-          $staging = "dist/wsl2-ssh-agent-$version-windows-x86_64"
-          New-Item -ItemType Directory -Path $staging -Force | Out-Null
-          Copy-Item "target/release/wsl2-ssh-agent.exe" "$staging/"
-          Copy-Item "README.md" "$staging/"
-          Copy-Item "LICENSE*" "$staging/" -ErrorAction SilentlyContinue
-          Compress-Archive -Path "$staging/*" -DestinationPath "dist/wsl2-ssh-agent-$version-windows-x86_64.zip" -Force
-
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/wsl2-ssh-agent-*.zip
+          files: target/release/wsl2-ssh-agent.exe
           generate_release_notes: true
