@@ -4,9 +4,5 @@ Requires=wsl2-ssh-agent.socket
 After=wsl2-ssh-agent.socket
 
 [Service]
-ExecStart=/usr/bin/socat - EXEC:'%h/.local/bin/wsl2-ssh-agent.exe'
-StandardInput=socket
-StandardOutput=socket
-
-[Install]
-WantedBy=default.target
+ExecStart=/usr/bin/socat ACCEPT-FD:3,fork EXEC:'%h/.local/bin/wsl2-ssh-agent.exe'
+StandardError=journal

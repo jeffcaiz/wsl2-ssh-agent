@@ -38,7 +38,7 @@ This creates a GitHub Release and uploads `wsl2-ssh-agent.exe` directly as the r
 
 ## Recommended: systemd User Socket
 
-For regular use, prefer the bundled `systemd --user` socket setup. Modern WSL distributions generally support `systemd`, and this gives you a persistent `SSH_AUTH_SOCK` without keeping a manual `socat` process around.
+For regular use, prefer the bundled `systemd --user` socket setup. Modern WSL distributions generally support `systemd`, and this gives you a persistent `SSH_AUTH_SOCK` with socket activation instead of a manually managed listener.
 
 First, place `wsl2-ssh-agent.exe` at `$HOME/.local/bin/wsl2-ssh-agent.exe`.
 
@@ -59,7 +59,7 @@ export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR:-/run/user/$UID}/ssh-agent.sock"
 ssh-add -l
 ```
 
-The sample service uses the default auto mode. If you want to force Pageant, edit `wsl2-ssh-agent.service` and add `--pageant`.
+The bundled units use `socat ACCEPT-FD:3,fork` so each accepted connection is bridged from the systemd-provided socket to `wsl2-ssh-agent.exe`. The sample service uses the default auto mode. If you want to force Pageant, edit `wsl2-ssh-agent.service` and add `--pageant`.
 
 ## Manual Test Setup
 
