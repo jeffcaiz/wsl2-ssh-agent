@@ -104,4 +104,3 @@ Run without arguments to use the default auto mode. Use `--pageant` to force Pag
 
 - The OpenSSH backend assumes the Windows agent is listening on the standard named pipe.
 - The Pageant backend uses the older shared-memory plus `WM_COPYDATA` protocol.
-- This project has passed `cargo check` on Windows, but live validation against a running OpenSSH agent and Pageant is still pending.
